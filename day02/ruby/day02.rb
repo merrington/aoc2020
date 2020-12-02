@@ -3,22 +3,40 @@ require 'pry'
 # rubocop:disable Metrics/MethodLength
 
 class Day02
+  WORKER_COUNT = 8
+
+  def initialize
+  end
+
   def go!(input_path)
-    ractors = read_file(input_path || '../input.txt').
-      readlines.
-      map do |line| 
-        Ractor.new(line) do |line|
-          Line.new(line).valid_2?
+    pipe = Ractor.new do
+      loop do
+        Ractor.yield Ractor.recv
+      end
+    end
+
+    workers = (1..WORKER_COUNT).map do
+      Ractor.new pipe do |pipe|
+        while line = pipe.take
+          Ractor.yield(Line.new(line).valid_2?)
         end
       end
-
-    valid_count = 0
-    until ractors.empty?
-      ractor, valid = Ractor.select(*ractors)
-      ractors.delete ractor
-      valid_count += 1 if valid
     end
-    valid_count
+
+
+    rows = 0
+    read_file(input_path || '../input.txt').
+      readlines.
+      each do |line| 
+        pipe << line
+        rows += 1
+      end
+
+    
+    (1..rows).select do |result|
+      _r, valid = Ractor.select(*workers)
+      valid
+    end.size
   end
 
   def read_file(path)
