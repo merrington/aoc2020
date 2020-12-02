@@ -2,9 +2,9 @@ require 'pry'
 
 class Day02
   def go!(input_path)
-    file = read_file(input_path || '../input.txt')
-    file.readlines.
-      select { |line| Line.new(line).valid? }.
+    read_file(input_path || '../input.txt').
+      readlines.
+      select { |line| Line.new(line).valid_2? }.
       size
   end
 
@@ -30,6 +30,14 @@ class Line
   def valid?
     count = password.chars.select { |pc| pc == char }.size
     min <= count && count <= max
+  end
+
+  def valid_2?
+    valid = false
+    password.chars.each_with_index do |pc, index|
+      valid = !valid if (index+1 == min || index+1 == max) && pc == char
+    end
+    valid
   end
 end
 
