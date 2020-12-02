@@ -35,7 +35,7 @@ class Line
   def valid_2?
     valid = false
     password.chars.each_with_index do |pc, index|
-      valid = !valid if (index+1 == min || index+1 == max) && pc == char
+      valid = !valid if (index + 1 == min || index + 1 == max) && pc == char
     end
     valid
   end
