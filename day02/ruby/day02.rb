@@ -1,11 +1,24 @@
 require 'pry'
 
+# rubocop:disable Metrics/MethodLength
+
 class Day02
   def go!(input_path)
-    read_file(input_path || '../input.txt').
+    ractors = read_file(input_path || '../input.txt').
       readlines.
-      select { |line| Line.new(line).valid_2? }.
-      size
+      map do |line| 
+        Ractor.new(line) do |line|
+          Line.new(line).valid_2?
+        end
+      end
+
+    valid_count = 0
+    until ractors.empty?
+      ractor, valid = Ractor.select(*ractors)
+      ractors.delete ractor
+      valid_count += 1 if valid
+    end
+    valid_count
   end
 
   def read_file(path)
