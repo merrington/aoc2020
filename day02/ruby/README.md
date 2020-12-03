@@ -51,3 +51,10 @@ Benchmark #1: ruby day02.rb "../input_large.txt"
   Time (mean ± σ):      3.803 s ±  0.694 s    [User: 3.958 s, System: 1.797 s]
   Range (min … max):    3.210 s …  5.230 s    10 runs
 ```
+
+### Benchmark 2 Summary
+| Ruby Version | Time |
+|-|-|
+| Ruby 2.7 | N/A |
+| Ruby 3.0 Preview | 151.682s |
+| Ruby 3.0 Preview, with Ractors | 3.803s |

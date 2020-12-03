@@ -5,10 +5,12 @@ require 'pry'
 class Day02
   WORKER_COUNT = 8
 
-  def initialize
+  def go!(input_path)
+    #ractor(input_path)
+    regular(input_path)
   end
 
-  def go!(input_path)
+  def ractor(input_path)
     pipe = Ractor.new do
       loop do
         Ractor.yield Ractor.recv
@@ -23,7 +25,6 @@ class Day02
       end
     end
 
-
     rows = 0
     read_file(input_path || '../input.txt').
       readlines.
@@ -32,11 +33,17 @@ class Day02
         rows += 1
       end
 
-    
     (1..rows).select do |result|
       _r, valid = Ractor.select(*workers)
       valid
     end.size
+  end
+
+  def regular(input_path)
+    read_file(input_path || '../input.txt').
+      readlines.
+      select { |line| Line.new(line).valid_2? }.
+      size
   end
 
   def read_file(path)
@@ -50,12 +57,26 @@ class Line
   LINE_REGEX = /([0-9]*)-([0-9]*) ([a-zA-Z]): (\w*)/.freeze
 
   def initialize(line)
-    line = line.match(LINE_REGEX)
+    #regex_line(line)
+    manual_line(line)
+  end
 
-    @min = line[1].to_i
-    @max = line[2].to_i
-    @char = line[3]
-    @password = line[4]
+  def regex_line(line)
+    parts = line.match(LINE_REGEX)
+
+    @min = parts[1].to_i
+    @max = parts[2].to_i
+    @char = parts[3]
+    @password = parts[4]
+  end
+
+  def manual_line(line)
+    parts = line.split(' ')
+
+    @min = parts[0].split('-')[0].to_i
+    @max = parts[0].split('-')[1].to_i
+    @char = parts[1][0]
+    @password = parts[2]
   end
 
   def valid?
@@ -64,11 +85,7 @@ class Line
   end
 
   def valid_2?
-    valid = false
-    password.chars.each_with_index do |pc, index|
-      valid = !valid if (index + 1 == min || index + 1 == max) && pc == char
-    end
-    valid
+    (password[min-1] == char) ^ (password[max-1] == char)
   end
 end
 
