@@ -2,9 +2,7 @@ require 'benchmark'
 require 'pry'
 
 class Day10
-  DEVICE_OFFSET = 3
-  ADAPTER_OFFSET = -3
-  OUTLET_JOLTAGE = 0
+  CACHE = {}
   DEVICE = 'device'.freeze
 
   attr_accessor :adapter_joltages, :joltage_jumps
@@ -34,7 +32,6 @@ class Day10
     joltage_jumps[1].count * joltage_jumps[3].count
   end
 
-  CACHE = {}
   def part2
     # Starting number
     device = adapter_joltages.last + 3
