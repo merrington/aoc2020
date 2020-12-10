@@ -10,7 +10,6 @@ class Day10
   def initialize(path)
     @adapter_joltages = File.readlines(path).map(&:to_i).sort
     @joltage_jumps = {
-      0 => [],
       1 => [],
       2 => [],
       3 => [],
@@ -23,7 +22,6 @@ class Day10
         joltage_jumps[1] << index
         joltage_jumps[3] << DEVICE
       else
-        # binding.pry
         diff = adapter_joltages[index + 1] - adapter_joltage
         joltage_jumps[diff] << index
       end
@@ -51,6 +49,7 @@ class Day10
       # check if we have adapters for joltages of -1, -2, -3
       [1, 2, 3].reduce(default_accumulator) do |accumulator, offset|
         if index = adapter_joltages.find_index(joltage - offset)
+          # adapter with that joltage exists, recurse on it's joltage
           accumulator += _part2(adapter_joltages[index])
         else
           accumulator
