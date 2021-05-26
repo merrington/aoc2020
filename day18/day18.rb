@@ -1,8 +1,13 @@
 require 'benchmark'
 require 'pry'
 
-class Day17
+class Day18
   attr_accessor :file, :path, :questions
+
+  BRACKETS = /\((\d+( [\+\*] \d+)*)\)/
+  ANY_OPERATION = /(\d+) ([\+\*]) (\d+)/
+  ADDITION = /(\d+) (\+) (\d+)/
+  MULTIPLICATION = /(\d+) (\*) (\d+)/
 
   def initialize(path)
     @path = path
@@ -14,69 +19,78 @@ class Day17
     operand_stack = []
     operator_stack = []
 
+    while (match = BRACKETS.match(expression))
+      expression.sub!(BRACKETS, parse(match[1]).to_s)
+    end
+
+    last_char_type = nil
     expression.chars.each do |char|
       next if char == ' '
 
       case char
       when /[0-9]+/
-        operand_stack.push(char.to_i)
+        if last_char_type == 'operand'
+          operand_stack.push((operand_stack.pop.to_s << char).to_i)
+        else
+          operand_stack.push(char.to_i)
+        end
+        last_char_type = 'operand'
       when /[\+\*]/ # only addition and multiplication it seems...
         operator_stack.push(char)
-      when /[\(\)]/
-        operand_stack.push(char)
+        last_char_type = 'operator'
       end
     end
-    {
-      operand_stack: operand_stack,
-      operator_stack: operator_stack,
-    }
+
+    evaluate(operand_stack: operand_stack, operator_stack: operator_stack)
   end
 
   def evaluate(operand_stack:, operator_stack:)
     while operator_stack.size > 0
       operator = operator_stack.shift
       # every operation takes 2 values
-
       # handle first operand
       o1 = operand_stack.shift
-      if o1 == '('
-        nested_eval = evaluate(operand_stack: operand_stack, operator_stack: operator_stack.unshift(operator))
-        operand_stack = nested_eval[:operand_stack]
-        operator_stack = nested_eval[:operator_stack]
-        o1 = operand_stack.shift
-        operator = operator_stack.shift
-      end
 
       # handle second operand
       o2 = operand_stack.shift
-      if o2 == ')'
-        # this is the end of the current expression, return the operand
-        return {
-          operand_stack: operand_stack.unshift(o1), # these have been modified
-          operator_stack: operator_stack.unshift(operator)
-        }
-      end
-
-      if o2 == '('
-        nested_eval = evaluate(operand_stack: operand_stack, operator_stack: operator_stack)
-        operand_stack = nested_eval[:operand_stack]
-        operator_stack = nested_eval[:operator_stack]
-        o2 = operand_stack.shift
-      end
 
       # solve and push to front of stack
       operand_stack.unshift(o1.send(operator.to_sym, o2))
     end
-    {
-      operand_stack: operand_stack,
-      operator_stack: operator_stack
-    }
+    operand_stack.shift
+  end
+
+  def parse_v2(expression, precedence = nil)
+    expression = expression.clone
+
+    while (match = BRACKETS.match(expression))
+      expression.sub!(BRACKETS, parse_v2(match[1], precedence).to_s)
+    end
+
+    # no brackets left, LTR vs addition first
+    if precedence.nil?
+      while (match = ANY_OPERATION.match(expression))
+        expression.sub!(ANY_OPERATION, evaluate_v2(match))
+      end
+    elsif precedence == '+'
+      while (match = ADDITION.match(expression))
+        expression.sub!(ADDITION, evaluate_v2(match))
+      end
+      while (match = MULTIPLICATION.match(expression))
+        expression.sub!(MULTIPLICATION, evaluate_v2(match))
+      end
+    end
+    expression.to_i
+  end
+  
+  def evaluate_v2(match_data)
+    match_data[1].to_i.send(match_data[2].to_sym, match_data[3].to_i).to_s
   end
 
   def part1
     questions.reduce(0) do |sum, question|
-      answer = evaluate(parse(question))[:operand_stack].first
-      puts answer
+      # answer = parse(question)
+      answer = parse_v2(question)
       sum + answer
     end
   end
@@ -84,22 +98,21 @@ class Day17
 
   def part2
     questions.reduce(0) do |sum, question|
-      answer = evaluate(parse(question))[:operand_stack].first
-      puts answer
+      answer = parse_v2(question, '+')
       sum + answer
     end
   end
 end
 
 path = 'input.txt'
-day17 = Day17.new(path)
+day18 = Day18.new(path)
 
 if ARGV.include?('--benchmark')
   Benchmark.bmbm do |x|
-    x.report('part1') { day17.part1 }
-    #x.report('part2') { day17.part2 }
+    x.report('part1') { day18.part1 }
+    x.report('part2') { day18.part2 }
   end
 else
-  puts day17.part1
-  puts day17.part2
+  puts day18.part1
+  puts day18.part2
 end

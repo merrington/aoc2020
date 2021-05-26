@@ -17,26 +17,31 @@ class Day15
   def read_starting_numbers
     @numbers = file.readline.split(',').map(&:to_i)
     numbers.each do |num|
-      spoken[num] = ((spoken[num] || []).push(@turn += 1)).last(2)
+      @turn += 1
+      add_to_spoken(num)
     end
     numbers.last
   end
   
   def is_first_time_spoken?(num)
-    spoken[num].size == 1
+    spoken[num][:first] == nil
+  end
+
+  def add_to_spoken(num)
+    spoken[num] = {
+      first: spoken.dig(num, :last),
+      last: turn,
+    }
   end
 
   def play_next(num)
+    @turn += 1
     if is_first_time_spoken?(num)
-      spoken[0] = (spoken[0] || []) << (@turn += 1)
+      add_to_spoken(0)
       0
     else
-      last_spoken = spoken[num].last
-      before_last_spoken = spoken[num][-2]
-      @turn += 1
-
-      next_num = last_spoken - before_last_spoken
-      spoken[next_num] = (spoken[next_num] || []) << turn
+      next_num = spoken[num][:last] - spoken[num][:first]
+      add_to_spoken(next_num)
       next_num
     end
   end
@@ -56,7 +61,7 @@ class Day15
   end
 end
 
-path = 'input.txt'
+path = 'sample.txt'
 day15 = Day15.new(path)
 
 if ARGV.include?('--benchmark')

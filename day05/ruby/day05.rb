@@ -27,7 +27,7 @@ class Day05
   end
 end
 
-sorted = Day05.new('../input.txt').call.sort { |a, b| a[:id] <=> b[:id] }
+sorted = Day05.new('../sample.txt').call.sort_by { |data| data[:id] }
 
 # part 1
 puts sorted.last[:id]

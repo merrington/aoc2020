@@ -40,7 +40,9 @@ class Day08
   end
 
   def part2
+    iteration = 0
     code.find do |line|
+      iteration += 1
       instruction = line.split(' ')[0]
       next if instruction == 'acc'
       reset
@@ -52,6 +54,7 @@ class Day08
       line.gsub!(/nop|jmp/, instruction) # switch back
       offset == code.size
     end
+    puts "iterations: #{iteration}"
     accumulator
   end
 
